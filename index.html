@@ -297,7 +297,8 @@
 
       // Load the first file on page load
       window.addEventListener("DOMContentLoaded", () => {
-        loadMarkdown(currentFile);
+        const firstTab = document.querySelector(".tab");
+        loadMarkdown(currentFile, firstTab);
       });
     </script>
   </body>
