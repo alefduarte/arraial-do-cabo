@@ -32,9 +32,9 @@
 🍞 **Objetivo:** Pausa para café, lanche e banheiro antes de subir a serra.  
 📸 **Descrição:** Ambiente tranquilo e acolhedor, ideal para um lanche leve com vista para as montanhas.
 
-![Kiosque do Alemão (Tanguá)](https://lh3.googleusercontent.com/gps-cs-s/AG0ilSzfZkIe4US-BTfqcRpRg4OVp9qyackI8NussPrvFxtW_y_UTvgKVJuzR223aboWBCjjcmKAz4gTauCgoHAr-Qiqu0NJWAco-VFaiho09fiv6BJjp36u3aF7ofrV86V_S2r7MoiSoQ=s1360-w1360-h1020-rw)
+<img src="https://lh3.googleusercontent.com/gps-cs-s/AG0ilSzfZkIe4US-BTfqcRpRg4OVp9qyackI8NussPrvFxtW_y_UTvgKVJuzR223aboWBCjjcmKAz4gTauCgoHAr-Qiqu0NJWAco-VFaiho09fiv6BJjp36u3aF7ofrV86V_S2r7MoiSoQ=s1360-w1360-h1020-rw" alt="drawing" width="250"/>
 
-<img src="https://lh3.googleusercontent.com/gps-cs-s/AG0ilSz3u3FT0W6-sowVbxb9tnNdxLxLUG_97C5YOKKq55pVnbk8nwdm6OgcTdS0LcqlwNpu1kYHZ0gMnvNvoNzH_ofz-VFRK6y0RXtcS9rIkF2_Yi_WU7SIMPWrjJU0e0hF-Aamp0gP8Q=s1360-w1360-h1020-rw" alt="drawing" width="250"/>
+<img src="https://lh3.googleusercontent.com/gps-cs-s/AG0ilSz3u3FT0W6-sowVbxb9tnNdxLxLUG_97C5YOKKq55pVnbk8nwdm6OgcTdS0LcqlwNpu1kYHZ0gMnvNvoNzH_ofz-VFRK6y0RXtcS9rIkF2_Yi_WU7SIMPWrjJU0e0hF-Aamp0gP8Q=s1360-w1360-h1020-rw" alt="drawing" width="300"/>
 
 ---
 
