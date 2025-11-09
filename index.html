@@ -224,6 +224,10 @@
         <button class="tab" onclick="loadMarkdown('roteiro-volta.md', this)">
           🏠 Volta: Arraial do Cabo → BH
         </button>
+        <button class="tab" onclick="loadMarkdown('roteiro-arraial.md', this)">
+          🏖️ Roteiro em Arraial
+        </button>
+        <button class="tab" onclick="showMap(this)">🗺️ Mapa Interativo</button>
       </div>
 
       <div class="content">
@@ -253,7 +257,39 @@
 
       marked.use({ renderer });
 
-      let currentFile = "roteiro-ida.md";
+      let currentFile = "roteiro-arraial.md";
+
+      function showMap(tabElement) {
+        const content = document.getElementById("markdown-content");
+
+        // Update active tab
+        document
+          .querySelectorAll(".tab")
+          .forEach((tab) => tab.classList.remove("active"));
+        if (tabElement) {
+          tabElement.classList.add("active");
+        }
+
+        // Load the map
+        content.innerHTML = '<div class="loading">Carregando mapa</div>';
+
+        fetch("map_with_sidebar.html")
+          .then((response) => response.text())
+          .then((html) => {
+            content.innerHTML =
+              '<iframe src="map_with_sidebar.html" width="100%" height="700" style="border:none; border-radius:8px;"></iframe>';
+          })
+          .catch((error) => {
+            console.error("Error loading map:", error);
+            content.innerHTML = `
+              <div class="error">
+                <h2>Erro ao carregar o mapa</h2>
+                <p>Não foi possível carregar o mapa interativo</p>
+                <p><small>${error.message}</small></p>
+              </div>
+            `;
+          });
+      }
 
       async function loadMarkdown(filename, tabElement) {
         const content = document.getElementById("markdown-content");

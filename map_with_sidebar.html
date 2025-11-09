@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mapa Arraial do Cabo - Pet Friendly</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      #container {
+        display: flex;
+        height: 100vh;
+      }
+
+      #map {
+        flex: 1;
+        height: 100%;
+      }
+
+      #sidebar {
+        width: 350px;
+        background: white;
+        overflow-y: auto;
+        box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+      }
+
+      #sidebar-header {
+        position: sticky;
+        top: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        z-index: 10;
+      }
+
+      #sidebar-header h2 {
+        font-size: 1.3em;
+        margin-bottom: 10px;
+      }
+
+      #search {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        font-size: 14px;
+        margin-top: 10px;
+      }
+
+      .category {
+        margin: 15px 0;
+      }
+
+      .category-header {
+        background: #f5f5f5;
+        padding: 10px 15px;
+        font-weight: 600;
+        color: #333;
+        border-left: 4px solid #667eea;
+        font-size: 0.95em;
+        position: sticky;
+        top: 140px;
+        z-index: 5;
+      }
+
+      .location-item {
+        padding: 12px 15px;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .location-item:hover {
+        background: #f8f9ff;
+        padding-left: 20px;
+      }
+
+      .location-item.active {
+        background: #e8ecff;
+        border-left: 4px solid #667eea;
+      }
+
+      .location-name {
+        font-weight: 500;
+        color: #333;
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+
+      .location-coords {
+        font-size: 11px;
+        color: #999;
+      }
+
+      .marker-icon {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
+
+      .color-praia {
+        background: #17a2b8;
+      }
+      .color-trilha {
+        background: #28a745;
+      }
+      .color-restaurante {
+        background: #fd7e14;
+      }
+      .color-bar {
+        background: #dc3545;
+      }
+      .color-base {
+        background: #6f42c1;
+      }
+
+      /* Mobile responsiveness */
+      @media (max-width: 768px) {
+        #container {
+          flex-direction: column;
+        }
+
+        #sidebar {
+          width: 100%;
+          height: 40%;
+          order: 2;
+        }
+
+        #map {
+          height: 60%;
+          order: 1;
+        }
+      }
+
+      /* Custom popup styling */
+      .leaflet-popup-content-wrapper {
+        border-radius: 8px;
+      }
+
+      .popup-content h3 {
+        margin: 0 0 10px 0;
+        color: #667eea;
+      }
+
+      .popup-content img {
+        width: 100%;
+        border-radius: 5px;
+        margin: 10px 0;
+      }
+
+      .popup-content .category-tag {
+        background: #667eea;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        display: inline-block;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <div id="map"></div>
+      <div id="sidebar">
+        <div id="sidebar-header">
+          <h2>🏖️ Arraial do Cabo</h2>
+          <p style="font-size: 0.9em; opacity: 0.9">Locais Pet-Friendly</p>
+          <input type="text" id="search" placeholder="🔍 Buscar local..." />
+        </div>
+        <div id="locations-list"></div>
+      </div>
+    </div>
+
+    <script>
+      // Initialize map centered on Arraial do Cabo
+      const map = L.map("map").setView([-22.9677, -42.025], 14);
+
+      // Add tile layer
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "© OpenStreetMap contributors",
+      }).addTo(map);
+
+      // Location data with GEOCODED coordinates from OpenStreetMap
+      const locations = [
+        // Praias e Natureza
+        {
+          name: "Praia Grande, Arraial do Cabo - RJ, 28930-000",
+          lat: -22.9706994,
+          lon: -42.0332551,
+          category: "Praias e Natureza",
+          description:
+            "Principal praia de Arraial, ideal para caminhadas, pôr do sol e curtir com pets.",
+          image: "https://placehold.co/400x300/17a2b8/white?text=Praia+Grande",
+          color: "#17a2b8",
+        },
+        {
+          name: "Praia do Forno, Arraial do Cabo - RJ, 28930-000",
+          lat: -22.9661228,
+          lon: -42.0153937,
+          category: "Praias e Natureza",
+          description:
+            "Acesso por trilha leve; águas cristalinas e vista deslumbrante.",
+          image:
+            "https://placehold.co/400x300/17a2b8/white?text=Praia+do+Forno",
+          color: "#17a2b8",
+        },
+        {
+          name: "Prainha, Arraial do Cabo - RJ, 28930-000",
+          lat: -22.9607273,
+          lon: -42.0244269,
+          category: "Praias e Natureza",
+          description: "Boa para banho e fotos; costuma ser mais tranquila.",
+          image: "https://placehold.co/400x300/17a2b8/white?text=Prainha",
+          color: "#17a2b8",
+        },
+        {
+          name: "Prainhas do Pontal do Atalaia, Arraial do Cabo - RJ, 28930-000",
+          lat: -22.9833353,
+          lon: -42.0148634,
+          category: "Praias e Natureza",
+          description: "Cartão-postal de Arraial, com águas azul-turquesa.",
+          image:
+            "https://placehold.co/400x300/17a2b8/white?text=Prainhas+do+Atalaia",
+          color: "#17a2b8",
+        },
+        {
+          name: "Praia dos Anjos, Arraial do Cabo - RJ, 28930-000",
+          lat: -22.9732716,
+          lon: -42.0206564,
+          category: "Praias e Natureza",
+          description:
+            "Onde saem os passeios de barco; boa para observar o movimento.",
+          image:
+            "https://placehold.co/400x300/17a2b8/white?text=Praia+dos+Anjos",
+          color: "#17a2b8",
+        },
+        {
+          name: "Mirante do Pontal do Atalaia, Arraial do Cabo - RJ, 28930-000",
+          lat: -22.9833353,
+          lon: -42.0148634,
+          category: "Praias e Natureza",
+          description:
+            "Vista panorâmica incrível, especialmente ao pôr do sol.",
+          image:
+            "https://placehold.co/400x300/17a2b8/white?text=Mirante+Atalaia",
+          color: "#17a2b8",
+        },
+        {
+          name: "Mirante do Vigia, Arraial do Cabo - RJ, 28930-000",
+          lat: -22.9818312,
+          lon: -42.0236358,
+          category: "Praias e Natureza",
+          description:
+            "Trilha curta com vista para o mar aberto; ótimo para fotos.",
+          image:
+            "https://placehold.co/400x300/17a2b8/white?text=Mirante+do+Vigia",
+          color: "#17a2b8",
+        },
+
+        // Trilhas e Passeios
+        {
+          name: "Trilha do Pontal do Atalaia, Arraial do Cabo - RJ, 28930-000",
+          lat: -22.9833353,
+          lon: -42.0148634,
+          category: "Trilhas e Passeios",
+          description:
+            "Trilha curta e de fácil acesso, leva ao mirante mais famoso da cidade.",
+          image:
+            "https://placehold.co/400x300/28a745/white?text=Trilha+Atalaia",
+          color: "#28a745",
+        },
+        {
+          name: "Trilha do Forno, Arraial do Cabo - RJ, 28930-000",
+          lat: -22.9626681,
+          lon: -42.0141836,
+          category: "Trilhas e Passeios",
+          description:
+            "Caminho de 15-20 min até a Praia do Forno; ótima para ir com calma e pets.",
+          image:
+            "https://placehold.co/400x300/28a745/white?text=Trilha+do+Forno",
+          color: "#28a745",
+        },
+        {
+          name: "Pelicano Tour - Saída da Praia dos Anjos, Arraial do Cabo - RJ",
+          lat: -22.9732716,
+          lon: -42.0206564,
+          category: "Trilhas e Passeios",
+          description:
+            "Passeio de barco com parada em praias paradisíacas; aceita pets pequenos.",
+          image: "https://placehold.co/400x300/28a745/white?text=Pelicano+Tour",
+          color: "#28a745",
+        },
+
+        // Restaurantes e Cafés
+        {
+          name: "Sol na Cozinha, Rua Miguel Angelo, Arraial do Cabo - RJ, 28930-000",
+          lat: -22.9735296,
+          lon: -42.0309966,
+          category: "Restaurantes e Cafés",
+          description:
+            "Culinária brasileira contemporânea com vista para o mar.",
+          image:
+            "https://placehold.co/400x300/fd7e14/white?text=Sol+na+Cozinha",
+          color: "#fd7e14",
+        },
+        {
+          name: "Bacalhau do Tuga, Rua Santa Cruz, Arraial do Cabo - RJ, 28930-000",
+          lat: -22.9698853,
+          lon: -42.0199748,
+          category: "Restaurantes e Cafés",
+          description:
+            "Restaurante português renomado, vista linda e ótimo bacalhau.",
+          image:
+            "https://placehold.co/400x300/fd7e14/white?text=Bacalhau+do+Tuga",
+          color: "#fd7e14",
+        },
+        {
+          name: "Mangará, Rua Hermes Barcelos, Arraial do Cabo - RJ, 28930-000",
+          lat: -22.9728795,
+          lon: -42.0312717,
+          category: "Restaurantes e Cafés",
+          description: "Frutos do mar frescos, ambiente descontraído.",
+          image: "https://placehold.co/400x300/fd7e14/white?text=Mangara",
+          color: "#fd7e14",
+        },
+        {
+          name: "Point Calamares, Praia Grande, Arraial do Cabo - RJ, 28930-000",
+          lat: -22.971,
+          lon: -42.033,
+          category: "Restaurantes e Cafés",
+          description:
+            "Especialidade em lulas e frutos do mar, ambiente familiar.",
+          image:
+            "https://placehold.co/400x300/fd7e14/white?text=Point+Calamares",
+          color: "#fd7e14",
+        },
+        {
+          name: "Saint Tropez, Avenida Luís Corrêa, Arraial do Cabo - RJ, 28930-000",
+          lat: -22.9702291,
+          lon: -42.0201885,
+          category: "Restaurantes e Cafés",
+          description: "Culinária internacional com toque brasileiro.",
+          image: "https://placehold.co/400x300/fd7e14/white?text=Saint+Tropez",
+          color: "#fd7e14",
+        },
+        {
+          name: "Café do Canal, Praia dos Anjos, Arraial do Cabo - RJ, 28930-000",
+          lat: -22.9732716,
+          lon: -42.0206564,
+          category: "Restaurantes e Cafés",
+          description:
+            "Café com vista para o cais; ótimo para relaxar à tarde.",
+          image: "https://placehold.co/400x300/fd7e14/white?text=Cafe+do+Canal",
+          color: "#fd7e14",
+        },
+        {
+          name: "Padaria Boa Esperança, Centro, Arraial do Cabo - RJ, 28930-000",
+          lat: -22.9698568,
+          lon: -42.0261006,
+          category: "Restaurantes e Cafés",
+          description:
+            "Padaria local excelente para café da manhã, aceita pets do lado de fora.",
+          image: "https://placehold.co/400x300/fd7e14/white?text=Padaria",
+          color: "#fd7e14",
+        },
+
+        // Vida Noturna / Bares
+        {
+          name: "Beach Chopp Grill, Praia Grande, Arraial do Cabo - RJ, 28930-000",
+          lat: -22.9706994,
+          lon: -42.0332551,
+          category: "Vida Noturna / Bares",
+          description:
+            "Bar animado à beira-mar, ótimo para drinks ao pôr do sol.",
+          image: "https://placehold.co/400x300/dc3545/white?text=Beach+Chopp",
+          color: "#dc3545",
+        },
+        {
+          name: "El Farol, Rua Nilo Peçanha, Arraial do Cabo - RJ, 28930-000",
+          lat: -22.9690892,
+          lon: -42.0198203,
+          category: "Vida Noturna / Bares",
+          description: "Ambiente descontraído, bons drinks e música ambiente.",
+          image: "https://placehold.co/400x300/dc3545/white?text=El+Farol",
+          color: "#dc3545",
+        },
+        {
+          name: "Bar do Pereira, Praia Grande, Arraial do Cabo - RJ, 28930-000",
+          lat: -22.9706994,
+          lon: -42.0332551,
+          category: "Vida Noturna / Bares",
+          description: "Bar simples, local e acolhedor — ótimo para relaxar.",
+          image:
+            "https://placehold.co/400x300/dc3545/white?text=Bar+do+Pereira",
+          color: "#dc3545",
+        },
+      ];
+
+      // Store markers for later reference
+      const markers = {};
+
+      // Add markers to map
+      locations.forEach((loc, index) => {
+        const marker = L.marker([loc.lat, loc.lon], {
+          icon: L.divIcon({
+            className: "custom-marker",
+            html: `<div style="background-color: ${loc.color}; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 15],
+          }),
+        }).addTo(map);
+
+        const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${loc.lat},${loc.lon}`;
+
+        const popupContent = `
+                <div class="popup-content">
+                    <h3>${loc.name}</h3>
+                    <img src="${loc.image}" 
+                         alt="${loc.name}" 
+                         style="max-width: 250px;"
+                         onerror="this.onerror=null; this.src='https://via.placeholder.com/250x150/667eea/ffffff?text=${encodeURIComponent(
+                           loc.name
+                         )}';">
+                    <p>${loc.description}</p>
+                    <span class="category-tag">${loc.category}</span>
+                    <div style="margin-top: 10px;">
+                        <a href="${googleMapsUrl}" target="_blank" 
+                           style="display: inline-block; background: #4285f4; color: white; 
+                                  padding: 8px 16px; border-radius: 5px; text-decoration: none; 
+                                  font-size: 13px; font-weight: 500;">
+                            📍 Abrir no Google Maps
+                        </a>
+                    </div>
+                </div>
+            `;
+
+        marker.bindPopup(popupContent, { maxWidth: 300 });
+        markers[index] = marker;
+      });
+
+      // Build sidebar
+      function buildSidebar() {
+        const locationsList = document.getElementById("locations-list");
+        const categories = [...new Set(locations.map((loc) => loc.category))];
+
+        categories.forEach((category) => {
+          const categoryDiv = document.createElement("div");
+          categoryDiv.className = "category";
+
+          const categoryHeader = document.createElement("div");
+          categoryHeader.className = "category-header";
+          categoryHeader.textContent = category;
+          categoryDiv.appendChild(categoryHeader);
+
+          locations.forEach((loc, index) => {
+            if (loc.category === category) {
+              const locItem = document.createElement("div");
+              locItem.className = "location-item";
+              locItem.dataset.index = index;
+
+              const colorClass = category.includes("Praia")
+                ? "color-praia"
+                : category.includes("Trilha")
+                ? "color-trilha"
+                : category.includes("Restaurante")
+                ? "color-restaurante"
+                : category.includes("Bar")
+                ? "color-bar"
+                : "color-base";
+
+              locItem.innerHTML = `
+                            <div class="location-name">
+                                <span class="marker-icon ${colorClass}"></span>
+                                ${loc.name}
+                            </div>
+                            <div class="location-coords">
+                                ${loc.lat.toFixed(4)}, ${loc.lon.toFixed(4)}
+                                <a href="https://www.google.com/maps/dir/?api=1&destination=${
+                                  loc.lat
+                                },${loc.lon}" 
+                                   target="_blank" 
+                                   style="margin-left: 8px; color: #4285f4; text-decoration: none; font-size: 12px;"
+                                   onclick="event.stopPropagation();">
+                                    📍 Maps
+                                </a>
+                            </div>
+                        `;
+
+              locItem.addEventListener("click", () => {
+                // Remove active class from all items
+                document.querySelectorAll(".location-item").forEach((item) => {
+                  item.classList.remove("active");
+                });
+
+                // Add active class to clicked item
+                locItem.classList.add("active");
+
+                // Pan to marker and open popup
+                map.setView([loc.lat, loc.lon], 16);
+                markers[index].openPopup();
+              });
+
+              categoryDiv.appendChild(locItem);
+            }
+          });
+
+          locationsList.appendChild(categoryDiv);
+        });
+      }
+
+      buildSidebar();
+
+      // Search functionality
+      const searchInput = document.getElementById("search");
+      searchInput.addEventListener("input", (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const items = document.querySelectorAll(".location-item");
+
+        items.forEach((item) => {
+          const name = item
+            .querySelector(".location-name")
+            .textContent.toLowerCase();
+          if (name.includes(searchTerm)) {
+            item.style.display = "block";
+          } else {
+            item.style.display = "none";
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
